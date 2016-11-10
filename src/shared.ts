@@ -72,19 +72,24 @@ class Shared {
           const base64 = base64Url.replace('-', '+').replace('_', '/');
           const exp = JSON.parse(this.$window.atob(base64)).exp;
           const role = JSON.parse(this.$window.atob(base64)).role; // JWT with an optional role claim
+
+          var valid = false;
           if (typeof exp === 'number') {  // JWT with an optonal expiration claims
-            return Math.round(new Date().getTime() / 1000) < exp;
+            valid =  Math.round(new Date().getTime() / 1000) < exp;
           }
           if (roleArgument) {
-            if (roleArgument !== role) {
+            if (roleArgument !== role || !valid) {
               return false; // Fail: Supplied role doesn't match role defined in token
             }
+          } else {
+            return false;
           }
+          return true; 
         } catch (e) {
-          return true;  // Pass: Non-JWT token that looks like JWT
+          return false;  // Fail: Non-JWT token that looks like JWT
         }
       }
-      return true;  // Pass: All other tokens
+      return false;  // Fail: All other tokens that do not match our tokens
     }
     return false; // Fail: No token at all
   }

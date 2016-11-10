@@ -1,6 +1,7 @@
 /**
  * Satellizer-Roles 0.15.5
  * (c) 2016 Chris Newell 
+ * (c) 2016 Alejandro Diaz
  * License: MIT 
  */
 
@@ -443,28 +444,39 @@ var Shared = (function () {
         this.SatellizerStorage.remove(this.prefixedTokenName);
     };
     Shared.prototype.isAuthenticated = function (roleArgument) {
+        //console.log("--------------------------")
+        //console.log("I CALLED THE IS isAuthenticated")
         var token = this.SatellizerStorage.get(this.prefixedTokenName);
         if (token) {
+            //console.log("THERE IS A TOKEN")
             if (token.split('.').length === 3) {
                 try {
                     var base64Url = token.split('.')[1];
                     var base64 = base64Url.replace('-', '+').replace('_', '/');
                     var exp = JSON.parse(this.$window.atob(base64)).exp;
                     var role = JSON.parse(this.$window.atob(base64)).role; // JWT with an optional role claim
+                    //console.log("This is the info in the token ");
+                    //console.log(JSON.parse(this.$window.atob(base64)));
+
+                    var valid = false;
                     if (typeof exp === 'number') {
-                        return Math.round(new Date().getTime() / 1000) < exp;
+                        valid =  Math.round(new Date().getTime() / 1000) < exp;
                     }
                     if (roleArgument) {
-                        if (roleArgument !== role) {
+                        console.log("roleArgument: ", roleArgument , " against Role in token: ", role);
+                        if (roleArgument !== role || !valid) {
                             return false; // Fail: Supplied role doesn't match role defined in token
                         }
+                    } else {
+                        return false;
                     }
+                    return true;
                 }
                 catch (e) {
                     return true; // Pass: Non-JWT token that looks like JWT
                 }
             }
-            return true; // Pass: All other tokens
+            return false; // Pass: All other tokens //THIS IS CHANGED TOO
         }
         return false; // Fail: No token at all
     };
@@ -961,4 +973,3 @@ var ng1 = 'satellizerRoles';
 return ng1;
 
 })));
-//# sourceMappingURL=satellizer-roles.js.map
